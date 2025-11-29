@@ -1,0 +1,9 @@
+name = "tiktok-fashion-shop"
+compatibility_date = "2025-11-29"
+
+# Dieser Abschnitt ist entscheidend!
+# Er sagt Cloudflare, dass es sich um statische Dateien handelt.
+# "directory = '.'" bedeutet: Nimm alle Dateien aus dem aktuellen Ordner (wo deine index.html liegt).
+[assets]
+directory = "."
+binding = "ASSETS"
