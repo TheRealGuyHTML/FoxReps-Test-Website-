@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dein TikTok Mode-Shop</title>
+    <!-- Lade Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- FontAwesome für Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Konfiguriere die Inter-Schriftart */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Styling für den klickbaren Bereich */
+        .product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Hide scrollbar for category list on mobile but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Einfache Fade-In Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col relative">
+
+    <!-- Promo Banner (Anmeldung) -->
+    <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
+            <div class="mb-6 md:mb-0">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
+                    Nicht verpassen: <span class="text-yellow-300">20% Extra-Rabatt!</span>
+                </h2>
+                <p class="text-indigo-100 text-lg max-w-xl">
+                    Melde dich jetzt für den VIP-Newsletter an und sichere dir exklusive Drops und Rabatte auf deine erste Bestellung.
+                </p>
+            </div>
+            <div class="flex-shrink-0">
+                <a href="#signup" class="inline-block bg-white text-indigo-600 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transform hover:scale-105 transition duration-200">
+                    Jetzt Code sichern
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header-Bereich -->
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-indigo-700 tracking-tight flex items-center gap-2">
+                <i class="fa-brands fa-tiktok"></i> TikTok Styles
+            </h1>
+            
+            <!-- Admin Button -->
+            <button onclick="handleAdminClick()" class="text-gray-500 hover:text-indigo-600 text-sm flex items-center gap-1 transition-colors">
+                <i id="admin-icon" class="fa-solid fa-lock"></i> 
+                <span class="hidden sm:inline" id="admin-text">Admin Login</span>
+            </button>
+        </div>
+
+        <!-- Kategorien Leiste (Horizontal Scrollbar auf Mobile) -->
+        <div class="border-t border-gray-100 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div class="flex space-x-2 overflow-x-auto no-scrollbar pb-1" id="category-filters">
+                    <!-- Filter Buttons werden hier generiert -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Panel (Versteckt per Default) -->
+    <div id="admin-panel" class="hidden bg-gray-100 border-b-4 border-indigo-500 p-6 animate-fade-in shadow-inner">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-indigo-800"><i class="fa-solid fa-database"></i> Produkt-Manager</h3>
+                <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded border border-indigo-200">Angemeldet als: Milan</span>
+            </div>
+            
+            <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="col-span-full mb-2 text-sm text-gray-500 font-medium">Neues Produkt anlegen:</div>
+                
+                <input type="text" id="p-name" placeholder="Produkt Name" class="p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                <input type="number" id="p-price" placeholder="Preis (z.B. 49.99)" step="0.01" class="p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                <select id="p-category" class="p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none bg-white" required>
+                    <!-- Kategorien werden hier eingefügt -->
+                </select>
+                <input type="url" id="p-link" placeholder="Link zum Shop (https://...)" class="p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                <input type="url" id="p-image" placeholder="Bild URL (https://...)" class="p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                
+                <div class="flex gap-2 items-center">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 w-full font-bold transition">
+                        <i class="fa-solid fa-plus"></i> Hinzufügen
+                    </button>
+                    <button type="button" onclick="exportData()" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition" title="JSON Daten kopieren">
+                        <i class="fa-solid fa-code"></i>
+                    </button>
+                </div>
+            </form>
+            <p class="text-xs text-gray-500 mt-2">
+                <i class="fa-solid fa-info-circle"></i> 
+                <strong>Wichtig:</strong> Neue Produkte werden im Browser gespeichert. Klicke auf das <code>&lt;/&gt;</code> Icon, um die Daten zu kopieren und dauerhaft in den Code einzufügen.
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Modal (Overlay) -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 animate-fade-in">
+            <div class="text-center mb-6">
+                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-user-lock text-indigo-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Admin Login</h3>
+                <p class="text-sm text-gray-500">Nur für Milan zugänglich</p>
+            </div>
+            
+            <form onsubmit="performLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="login-name" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Dein Name" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Passwort</label>
+                    <input type="password" id="login-pass" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Dein Passwort" required>
+                </div>
+                
+                <p id="login-error" class="text-red-500 text-sm hidden text-center font-medium">
+                    Falsche Zugangsdaten!
+                </p>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeLoginModal()" class="flex-1 py-2 px-4 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 font-medium">Abbrechen</button>
+                    <button type="submit" class="flex-1 py-2 px-4 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-bold shadow">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hauptinhalt - Produktkatalog -->
+    <main id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        
+        <div class="flex justify-between items-end mb-6">
+            <h2 class="text-2xl font-bold text-gray-800" id="current-category-title">Alle Produkte</h2>
+            <span class="text-sm text-gray-500" id="product-count">0 Artikel</span>
+        </div>
+        
+        <!-- Produkt-Raster -->
+        <div id="product-grid" class="grid grid-cols-2 gap-4 sm:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            <!-- Produkte werden dynamisch eingefügt -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Über mich</h4>
+                <p class="text-sm leading-relaxed">
+                    Ich zeige euch die besten Fits und Trends von TikTok. Klicke auf die Produkte, um sie direkt beim Hersteller zu shoppen.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Kategorien</h4>
+                <ul class="text-sm space-y-2">
+                    <li><a href="#" onclick="filterProducts('hoodies')" class="hover:text-white">Hoodies</a></li>
+                    <li><a href="#" onclick="filterProducts('tees')" class="hover:text-white">Tees</a></li>
+                    <li><a href="#" onclick="filterProducts('shoes')" class="hover:text-white">Shoes</a></li>
+                </ul>
+            </div>
+            <div id="signup">
+                <h4 class="text-white text-lg font-bold mb-4">Newsletter</h4>
+                <p class="text-sm mb-4">Melde dich an für Updates.</p>
+                <div class="flex">
+                    <input type="email" placeholder="Deine E-Mail" class="w-full p-2 rounded-l text-gray-900 focus:outline-none">
+                    <button class="bg-indigo-600 px-4 py-2 rounded-r text-white font-bold hover:bg-indigo-500">Go</button>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-xs text-gray-500">
+            &copy; 2025 Dein Creator Shop. Affiliate Links enthalten.
+        </div>
+    </footer>
+
+    <script>
+        // --- KONFIGURATION ---
+        
+        const categories = [
+            { id: 'all', label: 'All' },
+            { id: 'hoodies', label: 'Hoodies' },
+            { id: 'tees', label: 'Tees' },
+            { id: 'pants', label: 'Pants' }, 
+            { id: 'jackets', label: 'Jackets' }, 
+            { id: 'shoes', label: 'Shoes' }, 
+            { id: 'socks', label: 'Socks' }, 
+            { id: 'jewelry', label: 'Jewelry' }, 
+            { id: 'hats', label: 'Hats' },
+            { id: 'collectibles', label: 'Collectibles' }
+        ];
+
+        const defaultProducts = [
+            {
+                id: 1,
+                name: "Cloud-Weaver Hoodie",
+                category: "hoodies",
+                price: 69.99,
+                link: "https://example.com/hoodie",
+                image: "https://placehold.co/400x500/A3A0B5/FFFFFF?text=Hoodie+Blue"
+            },
+            {
+                id: 2,
+                name: "Astro-Runner X",
+                category: "shoes",
+                price: 129.50,
+                link: "https://example.com/sneaker",
+                image: "https://placehold.co/400x500/E3A0B5/333333?text=Sneaker+Astro"
+            },
+            {
+                id: 3,
+                name: "High-Flex Denim",
+                category: "pants",
+                price: 89.00,
+                link: "https://example.com/jeans",
+                image: "https://placehold.co/400x500/A3C0B5/FFFFFF?text=Jeans+Flex"
+            },
+            {
+                id: 4,
+                name: "Vintage Graphic Tee",
+                category: "tees",
+                price: 34.99,
+                link: "https://example.com/tee",
+                image: "https://placehold.co/400x500/B5E0A3/333333?text=Vintage+Tee"
+            },
+            {
+                id: 5,
+                name: "Urban Shell Jacket",
+                category: "jackets",
+                price: 149.99,
+                link: "https://example.com/jacket",
+                image: "https://placehold.co/400x500/C0B5A3/FFFFFF?text=Urban+Jacket"
+            },
+            {
+                id: 6,
+                name: "Retro Bucket Hat",
+                category: "hats",
+                price: 25.00,
+                link: "https://example.com/hat",
+                image: "https://placehold.co/400x500/D3A0A0/FFFFFF?text=Bucket+Hat"
+            },
+            {
+                id: 7,
+                name: "Gold Chain 5mm",
+                category: "jewelry",
+                price: 59.90,
+                link: "https://example.com/chain",
+                image: "https://placehold.co/400x500/FFD700/333333?text=Gold+Chain"
+            },
+            {
+                id: 8,
+                name: "Logo Socks (3-Pack)",
+                category: "socks",
+                price: 19.99,
+                link: "https://example.com/socks",
+                image: "https://placehold.co/400x500/FFFFFF/000000?text=Socks+Pack"
+            }
+        ];
+
+        // --- STATE ---
+        let products = JSON.parse(localStorage.getItem('tiktokShopProducts')) || defaultProducts;
+        let currentCategory = 'all';
+        let isAdminLoggedIn = false; // Admin Status
+
+        // DOM Elemente
+        const grid = document.getElementById('product-grid');
+        const filterContainer = document.getElementById('category-filters');
+        const categoryTitle = document.getElementById('current-category-title');
+        const productCount = document.getElementById('product-count');
+        const adminPanel = document.getElementById('admin-panel');
+        const categorySelect = document.getElementById('p-category');
+        const loginModal = document.getElementById('login-modal');
+        const adminIcon = document.getElementById('admin-icon');
+        const adminText = document.getElementById('admin-text');
+
+        // --- INIT ---
+        function init() {
+            renderFilters();
+            renderAdminSelect();
+            renderProducts();
+        }
+
+        // --- AUTH & ADMIN LOGIC ---
+
+        function handleAdminClick() {
+            if (isAdminLoggedIn) {
+                // Wenn schon eingeloggt, toggle Panel
+                adminPanel.classList.toggle('hidden');
+            } else {
+                // Wenn nicht eingeloggt, zeige Login Modal
+                openLoginModal();
+            }
+        }
+
+        function openLoginModal() {
+            loginModal.classList.remove('hidden');
+            // Reset fields
+            document.getElementById('login-name').value = '';
+            document.getElementById('login-pass').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function closeLoginModal() {
+            loginModal.classList.add('hidden');
+        }
+
+        function performLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('login-name').value;
+            const pass = document.getElementById('login-pass').value;
+            const errorMsg = document.getElementById('login-error');
+
+            // --- HIER SIND DIE ZUGANGSDATEN ---
+            if (name === 'Milan' && pass === 'BierBauchBen') {
+                // Erfolg
+                isAdminLoggedIn = true;
+                closeLoginModal();
+                
+                // UI Updates
+                adminPanel.classList.remove('hidden'); // Panel direkt anzeigen
+                adminIcon.classList.remove('fa-lock');
+                adminIcon.classList.add('fa-unlock', 'text-green-500');
+                adminText.innerText = 'Admin Menu';
+                
+            } else {
+                // Fehler
+                errorMsg.classList.remove('hidden');
+                // Wackel Animation für Feedback
+                document.querySelector('#login-modal > div').classList.add('animate-pulse');
+                setTimeout(() => {
+                    document.querySelector('#login-modal > div').classList.remove('animate-pulse');
+                }, 500);
+            }
+        }
+
+        // --- RENDER & FILTER ---
+
+        function renderFilters() {
+            filterContainer.innerHTML = categories.map(cat => `
+                <button 
+                    onclick="filterProducts('${cat.id}')"
+                    class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 
+                    ${currentCategory === cat.id 
+                        ? 'bg-indigo-600 text-white shadow-md' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+                >
+                    ${cat.label}
+                </button>
+            `).join('');
+        }
+
+        function renderAdminSelect() {
+            const options = categories.filter(c => c.id !== 'all').map(c => 
+                `<option value="${c.id}">${c.label}</option>`
+            ).join('');
+            categorySelect.innerHTML = options;
+        }
+
+        function filterProducts(catId) {
+            currentCategory = catId;
+            renderFilters();
+            renderProducts();
+            const catLabel = categories.find(c => c.id === catId).label;
+            categoryTitle.innerText = catId === 'all' ? 'Alle Produkte' : catLabel;
+        }
+
+        function renderProducts() {
+            grid.innerHTML = '';
+            const filtered = currentCategory === 'all' 
+                ? products 
+                : products.filter(p => p.category === currentCategory);
+
+            productCount.innerText = `${filtered.length} Artikel`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">Keine Produkte gefunden.</div>`;
+                return;
+            }
+
+            filtered.forEach(product => {
+                const card = document.createElement('a');
+                card.href = product.link;
+                card.target = "_blank";
+                card.className = 'product-card block bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 ease-in-out transform hover:shadow-xl flex flex-col h-full';
+                
+                const formattedPrice = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(product.price);
+
+                card.innerHTML = `
+                    <div class="relative w-full aspect-[4/5] overflow-hidden bg-gray-200">
+                        <img 
+                            src="${product.image}" 
+                            alt="${product.name}" 
+                            class="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                            loading="lazy"
+                            onerror="this.src='https://placehold.co/400x500/CCCCCC/666666?text=No+Image'"
+                        >
+                        <span class="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                            ${categories.find(c => c.id === product.category)?.label || 'Item'}
+                        </span>
+                    </div>
+                    
+                    <div class="p-4 flex flex-col flex-grow text-center">
+                        <p class="text-xl font-black text-red-600 mb-1 leading-none">
+                            ${formattedPrice}
+                        </p>
+                        <h3 class="mt-1 text-sm font-semibold text-gray-800 line-clamp-2">
+                            ${product.name}
+                        </h3>
+                        <div class="mt-auto pt-3">
+                             <span class="text-xs text-indigo-600 font-medium bg-indigo-50 px-2 py-1 rounded">
+                                Zum Shop <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- PRODUKT MANAGEMENT ---
+
+        document.getElementById('add-product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newProduct = {
+                id: Date.now(),
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                category: document.getElementById('p-category').value,
+                link: document.getElementById('p-link').value,
+                image: document.getElementById('p-image').value
+            };
+
+            products.unshift(newProduct);
+            saveProducts();
+            
+            this.reset();
+            currentCategory = 'all'; 
+            init();
+            alert('Produkt erfolgreich hinzugefügt!');
+        });
+
+        function saveProducts() {
+            localStorage.setItem('tiktokShopProducts', JSON.stringify(products));
+        }
+
+        function exportData() {
+            const json = JSON.stringify(products, null, 4);
+            navigator.clipboard.writeText(json).then(() => {
+                alert('JSON kopiert! Füge dies in deine HTML Datei ein.');
+            });
+        }
+
+        // Start
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
