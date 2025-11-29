@@ -85,6 +85,12 @@
             </div>
         </div>
     </header>
+    
+    <!-- DEBUG HILFE: Sollte immer sichtbar sein, wenn HTML geladen wird -->
+    <div id="js-check-message" class="text-center text-sm text-red-500 bg-red-50 py-2 border-b border-red-200">
+        DEBUG-PRÜFUNG: Wenn dies sichtbar ist, aber keine Produkte, liegt ein **JavaScript-Fehler** vor. Bitte öffne die Browser-Konsole (F12).
+    </div>
+
 
     <!-- Admin Panel (Versteckt per Default) -->
     <div id="admin-panel" class="hidden bg-gray-100 border-b-4 border-indigo-500 p-6 animate-fade-in shadow-inner">
@@ -201,6 +207,9 @@
     </footer>
 
     <script>
+        // DEBUG: Prüfen, ob das Skript geladen wird
+        console.log("TikTok Shop Script Started.");
+
         // --- KONFIGURATION ---
         
         const categories = [
@@ -301,6 +310,7 @@
 
         // --- INIT ---
         function init() {
+            console.log("init() wird ausgeführt...");
             renderFilters();
             renderAdminSelect();
             renderProducts();
@@ -463,7 +473,8 @@
             this.reset();
             currentCategory = 'all'; 
             init();
-            alert('Produkt erfolgreich hinzugefügt!');
+            // Statt alert() könntest du eine Modal-Box anzeigen
+            console.log('Produkt erfolgreich hinzugefügt!'); 
         });
 
         function saveProducts() {
@@ -472,9 +483,15 @@
 
         function exportData() {
             const json = JSON.stringify(products, null, 4);
-            navigator.clipboard.writeText(json).then(() => {
-                alert('JSON kopiert! Füge dies in deine HTML Datei ein.');
-            });
+            // Verwende document.execCommand('copy') als Fallback für Clipboard API
+            const textarea = document.createElement('textarea');
+            textarea.value = json;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            alert('JSON kopiert! Füge dies in deine HTML Datei ein.');
         }
 
         // Start
